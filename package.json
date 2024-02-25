@@ -1,0 +1,22 @@
+{
+  "name": "backend-refe-eletiva",
+  "version": "1.0.0",
+  "description": "\"# backend-rede-eletiva\"",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "node --watch --no-warnings src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^4.26.1",
+    "jsonwebtoken": "^9.0.2",
+    "postgres": "^3.4.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
