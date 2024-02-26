@@ -22,11 +22,12 @@ export class DiciplineModel {
       e.code_elective`;
   }
 
-  async checkVacanciesDiscipline(data) {
+  async checkVacanciesDiscipline(code_elective, data) {
     const disciplines = await this.findDiciplinesClasse(data.reference_classe);
+    
   
-    const findDisciplineSelect = disciplines.find((result) => result.code_elective === data.code_elective);
-  
+    const findDisciplineSelect = disciplines.find((result) => result.code_elective === code_elective);
+
     if (findDisciplineSelect) {
       return findDisciplineSelect.available_vacancies > 0;
     } else {

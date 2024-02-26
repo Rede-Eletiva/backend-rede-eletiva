@@ -47,8 +47,9 @@ class StudentsController {
   async studenSelectionDiscipline(request, response, data) {
     try {
       const { code_elective } = request.body
+
       const checkVacancies =
-      await this.disciplineModel.checkVacanciesDiscipline(data);
+      await this.disciplineModel.checkVacanciesDiscipline(code_elective, data);
       
       if (checkVacancies) {
         const selected = await this.studentsModel.registerDiscipline(
@@ -56,6 +57,7 @@ class StudentsController {
           code_elective
           );
         response.status(200).send(selected);
+
       } else {
         response.status(401).send({
           success: false,
