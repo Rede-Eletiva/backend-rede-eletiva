@@ -70,6 +70,16 @@ class StudentsController {
         .send({ success: false, message: "Erro interno do servidor." });
     }
   }
+
+  async dataStudent(request, response, ra) {
+    try {
+      const student = await this.studentsModel.getStudent(ra);
+
+      response.status(200).send(student);
+    } catch(error) {
+      console.log(error.message);
+    }
+  }
 }
 
 export default StudentsController;

@@ -16,12 +16,18 @@ export class StudentsModel {
 
   async registerDiscipline(ra, code_elective) {
     try {
-      console.log(ra, code_elective)
       const selectedDiscipline = await sql`UPDATE students SET code_elective = ${code_elective} WHERE ra = ${ra}`;
-      console.log(selectedDiscipline)
       return selectedDiscipline;
     } catch (error) {
       console.log(error.message);
+    }
+  }
+
+  async getStudent(ra) {
+    try {
+      return sql`SELECT * FROM students WHERE ra = ${ra}`
+    } catch(error) {
+      console.log(error.message)
     }
   }
 }

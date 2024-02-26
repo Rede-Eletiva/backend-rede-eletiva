@@ -1,6 +1,5 @@
 import "dotenv/config";
 import JWT from "jsonwebtoken";
-import sql from "../config/db.js";
 
 export const authService = {
   generateToken(payload) {
