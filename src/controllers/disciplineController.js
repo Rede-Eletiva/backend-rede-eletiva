@@ -7,7 +7,7 @@ export class DisciplineControllers {
   async index(request, response, studentData) {
     try {
       const discplineClasse = await this.disciplineModel.findDiciplinesClasse(
-        studentData.reference_classe
+        studentData.module
       );
       response.status(200).send(discplineClasse);
     } catch (error) {

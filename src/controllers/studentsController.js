@@ -18,6 +18,7 @@ class StudentsController {
         const token = await authService.generateToken({
           student_ra: student[0].ra,
           reference_classe: student[0].reference_classe,
+          module: student[0].module,
           code_elective: student[0].code_elective,
         });
 
@@ -54,7 +55,8 @@ class StudentsController {
       if (checkVacancies) {
         const selected = await this.studentsModel.registerDiscipline(
           data.student_ra,
-          code_elective
+          code_elective,
+          data.module
           );
         response.status(200).send(selected);
 

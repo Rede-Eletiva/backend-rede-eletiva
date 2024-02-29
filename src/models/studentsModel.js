@@ -16,11 +16,30 @@ export class StudentsModel {
 
   async registerDiscipline(ra, code_elective) {
     try {
-      const selectedDiscipline = await sql`UPDATE students SET code_elective = ${code_elective} WHERE ra = ${ra}`;
-      return selectedDiscipline;
+    
+      const [{ frame }] = await sql`SELECT frame from electives WHERE code_elective = ${code_elective}`;
+
+     const verifySelection = await this.isEnrolledInElective(ra, frame);
+
+     if(!verifySelection) {
+        await sql`INSERT INTO choice_electives (ra, code_elective, frame) VALUES (${ra}, ${code_elective}, ${frame})`
+     } else {
+        await sql`UPDATE choice_electives SET code_elective = ${code_elective} WHERE ra = ${ra} AND frame = ${frame}`; 
+     }
     } catch (error) {
       console.log(error.message);
     }
+  }
+  async isEnrolledInElective(ra, frame) {
+    const verifyStudent = await sql`
+    SELECT COUNT(*) AS count
+    FROM choice_electives AS ce 
+    INNER JOIN electives AS e ON ce.code_elective = e.code_elective
+    WHERE ce.ra = ${ra} AND
+    e.frame = ${frame};
+  `;
+
+  return verifyStudent[0].count > 0;
   }
 
   async getStudent(ra) {
