@@ -44,9 +44,33 @@ export class StudentsModel {
 
   async getStudent(ra) {
     try {
-      return sql`SELECT * FROM students WHERE ra = ${ra}`
-    } catch(error) {
-      console.log(error.message)
+      const student = await sql`SELECT * FROM students WHERE ra = ${ra}`;
+
+      const electives_choice = await sql`
+        SELECT frame, code_elective FROM choice_electives WHERE ra = ${ra}
+      `;
+  
+      const { module } = student[0]
+
+      const electives = await sql`SELECT DISTINCT frame FROM electives WHERE module = ${module}`;
+  
+      student[0].electives = {};
+  
+      if (electives_choice && electives_choice.length > 0) {
+        electives_choice.forEach((e) => {
+          student[0].electives[e.frame] = e.code_elective;
+        });
+      } else {
+        electives.forEach((e) => {
+          student[0].electives[e.frame] = "";
+        });
+      }
+
+      return student;
+    } catch (error) {
+      console.log(error.message);
+      throw error;
     }
   }
+  
 }

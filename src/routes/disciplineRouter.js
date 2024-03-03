@@ -10,7 +10,6 @@ export async function discplineRoutes(app) {
     async (request, response) => {
       try {
         await disciplineControllers.index(request, response, request.student);
-        console.log('Função iniciada')
       } catch (error) {
         console.error("Erro na rota:", error);
         response
