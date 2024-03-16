@@ -47,4 +47,49 @@ export class DiciplineModel {
       return false;
     }
   }
+
+  async registerElectives(data) {
+    const { name, name_teacher, number_vacancies, module, frame } = data;
+
+    await sql`
+    SELECT SETVAL('code_elective_seq', 
+      COALESCE((SELECT MAX(CAST(SUBSTRING(code_elective FROM 4) AS INT)) 
+          FROM electives
+          WHERE code_elective ~ '^EEM[0-9]+$'), 
+          1));
+    `;
+
+    // Insert new elective
+    const query = await sql`
+    INSERT INTO electives("name", name_teacher, number_vacancies, "module", frame) 
+    VALUES (${name}, ${name_teacher}, ${number_vacancies}, ${module}, ${frame});
+  `;
+
+    return query;
+  }
+
+  async update(id, data) {
+    const { name, name_teacher, number_vacancies, module, frame } = data;
+
+    const query = await sql`
+        UPDATE electives 
+        SET name = ${name}, 
+            name_teacher = ${name_teacher}, 
+            number_vacancies = ${number_vacancies}, 
+            module = ${module}, 
+            frame = ${frame}
+        WHERE code_elective = ${id};
+    `;
+    return query;
+  }
+
+  async delete(id) {
+    try {
+      await sql`DELETE FROM choice_electives WHERE code_elective = ${id}`;
+      await sql`DELETE FROM electives WHERE code_elective = ${id}`;
+      return true; 
+    } catch (error) {
+      throw error;
+    }
+  }
 }
