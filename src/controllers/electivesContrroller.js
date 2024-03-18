@@ -7,16 +7,26 @@ export class ElectivesController {
 
   async getAllElectives(request, response) {
     try {
-      const allElectives = await this.disciplineModel.findDiciplinesClasse(
-        null
-      );
-      response.status(200).send(allElectives);
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
+        const allElectives = await this.disciplineModel.findDiciplinesClasse(null);
+        
+        const electivesByModule = {};
 
-  async create(request, response) {
+        allElectives.forEach(elective => {
+            const module = elective.module;
+            if (!electivesByModule[module]) {
+                electivesByModule[module] = [];
+            }
+            electivesByModule[module].push(elective);
+        });
+
+        response.status(200).send(electivesByModule);
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+
+  async createElective(request, response) {
     try {
       const data = request.body;
       await this.disciplineModel.registerElectives(data);

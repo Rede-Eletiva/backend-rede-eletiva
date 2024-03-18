@@ -7,6 +7,7 @@ export class DiciplineModel {
       e.code_elective,
       e.name AS name_elective,
       e.name_teacher,
+      e.module,
       e.number_vacancies AS total_vacancies,
       COUNT(s.ra) AS filled_vacancies,
       e.number_vacancies - COUNT(s.ra) AS available_vacancies,

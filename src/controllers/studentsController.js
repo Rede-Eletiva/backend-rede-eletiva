@@ -84,6 +84,68 @@ class StudentsController {
       console.log(error.message);
     }
   }
+
+  // Funcionalidade do Administrador
+
+  async getAllStudents(request, response) {
+    console.log(request.body)
+    try {
+        const allStudents = await this.studentsModel.getAllStudents();
+
+
+        const filteredStudents = allStudents.filter(student => {
+            if (request.body.reference_classe[student.reference_classe]) {
+                return true;
+            }
+            if (request.body.module[student.module]) {
+                return true;
+            }
+            return false;
+        });
+
+        let registeredCount = 0;
+        let noRegisteredCount = 0;
+
+        // Conta alunos registrados e não registrados
+        filteredStudents.forEach(student => {
+            if (student.is_registered) {
+                registeredCount++;
+            } else {
+                noRegisteredCount++;
+            }
+        });
+
+        const totalStudents = filteredStudents.length;
+        const registeredPercentage = ((registeredCount / totalStudents) * 100).toFixed(2);
+        const noRegisteredPercentage = ((noRegisteredCount / totalStudents) * 100).toFixed(2);
+
+        const progress = {
+            registered: parseFloat(registeredPercentage),
+            no_registered: parseFloat(noRegisteredPercentage)
+        };      
+
+        response.status(200).send({ progress, filteredStudents });
+    } catch (error) {
+        response.status(500).send({
+            message: error.message,
+        });
+    }
+  }
+
+  async addStudents(request, response) {
+    try {
+      const data = request.body;
+      await this.studentsModel.create(data);
+
+      response.status(201);
+    } catch (error) {
+      response.status(500).send({
+        message: error.message,
+    });
+    }
+  }
+
+  
 }
 
 export default StudentsController;

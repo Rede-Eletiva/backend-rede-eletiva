@@ -45,7 +45,7 @@ export class StudentsModel {
   async getStudent(ra) {
     try {
 
-      const student = await sql`SELECT * FROM students WHERE ra = ${ra}`;
+      const student = await sql`SELECT * FROM students  WHERE ra = ${ra}`;
 
       const { module } = student[0]
 
@@ -58,8 +58,8 @@ export class StudentsModel {
           student[0].electives[e.frame] = e.code_elective;
         });
       } else {
-        electives.forEach((e) => {
-          student[0].electives[e.frame] = "";
+        student.forEach((e) => {
+          student[0].electives  = false;
         });
       }
 
@@ -67,6 +67,48 @@ export class StudentsModel {
     } catch (error) {
       console.log(error.message);
       throw error;
+    }
+  }
+
+  async getAllStudents() {
+    try {
+      const allStudents = await sql`
+        SELECT 
+          s.ra,
+          s.name,
+          s.reference_classe,
+          s.module,
+          e.name AS name_elective,
+          CASE 
+                WHEN ce.ra IS NOT NULL THEN TRUE
+                ELSE FALSE
+            END AS is_registered
+        FROM students AS s
+        LEFT JOIN choice_electives AS ce
+          ON ce.ra = s.ra
+        LEFT JOIN electives AS e
+          ON e.code_elective = ce.code_elective
+        ORDER BY s."name"
+        `;
+
+      return allStudents;
+
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  async create(data) {
+    try {
+      const { ra, name, date_birth, reference_classe, module } = data;
+
+      return await sql`
+        INSERT INTO students (ra, name, date_birth, reference_classe, module)
+        VALUES (${ra}, ${name}, ${date_birth}, ${reference_classe}, ${module})
+      `;
+      
+    } catch (error) {
+      console.log(error.message);
     }
   }
   
