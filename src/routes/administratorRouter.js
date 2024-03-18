@@ -104,4 +104,16 @@ export async function administratorRouter(app) {
     }
   });
 
+  app.get('/download-excel', async(request, reply) => {
+    try {
+      await studentsController.downloadExcel(request, reply);
+    } catch (error) {
+      reply.status(500).send({
+        success: false,
+        message: "Erro interno do servidor.",
+        log: error.message,
+      });
+    }
+  })
+
 }

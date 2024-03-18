@@ -1,6 +1,7 @@
 import { StudentsModel } from "../models/studentsModel.js";
 import { DiciplineModel } from "../models/disciplineModel.js";
 import { authService } from "../middlewares/authService.js";
+import XLSX from "xlsx";
 
 class StudentsController {
   constructor() {
@@ -47,26 +48,27 @@ class StudentsController {
 
   async studenSelectionDiscipline(request, response, data) {
     try {
-      const { code_elective } = request.body
+      const { code_elective } = request.body;
 
       const checkVacancies =
-      await this.disciplineModel.checkVacanciesDiscipline(code_elective, data);
-      
+        await this.disciplineModel.checkVacanciesDiscipline(
+          code_elective,
+          data
+        );
+
       if (checkVacancies) {
         const selected = await this.studentsModel.registerDiscipline(
           data.student_ra,
           code_elective,
           data.module
-          );
+        );
         response.status(200).send(selected);
-
       } else {
         response.status(401).send({
           success: false,
-          message: 'Não há vagas disponíveis para a disciplina.',
+          message: "Não há vagas disponíveis para a disciplina.",
         });
       }
-
     } catch (error) {
       console.error("Erro na rota:", error);
       response
@@ -80,7 +82,7 @@ class StudentsController {
       const student = await this.studentsModel.getStudent(ra);
 
       response.status(200).send(student);
-    } catch(error) {
+    } catch (error) {
       console.log(error.message);
     }
   }
@@ -88,47 +90,52 @@ class StudentsController {
   // Funcionalidade do Administrador
 
   async getAllStudents(request, response) {
-    console.log(request.body)
+    console.log(request.body);
     try {
-        const allStudents = await this.studentsModel.getAllStudents();
+      const allStudents = await this.studentsModel.getAllStudents();
 
+      const filteredStudents = allStudents.filter((student) => {
+        if (request.body.reference_classe[student.reference_classe]) {
+          return true;
+        }
+        if (request.body.module[student.module]) {
+          return true;
+        }
+        return false;
+      });
 
-        const filteredStudents = allStudents.filter(student => {
-            if (request.body.reference_classe[student.reference_classe]) {
-                return true;
-            }
-            if (request.body.module[student.module]) {
-                return true;
-            }
-            return false;
-        });
+      let registeredCount = 0;
+      let noRegisteredCount = 0;
 
-        let registeredCount = 0;
-        let noRegisteredCount = 0;
+      // Conta alunos registrados e não registrados
+      filteredStudents.forEach((student) => {
+        if (student.is_registered) {
+          registeredCount++;
+        } else {
+          noRegisteredCount++;
+        }
+      });
 
-        // Conta alunos registrados e não registrados
-        filteredStudents.forEach(student => {
-            if (student.is_registered) {
-                registeredCount++;
-            } else {
-                noRegisteredCount++;
-            }
-        });
+      const totalStudents = filteredStudents.length;
+      const registeredPercentage = (
+        (registeredCount / totalStudents) *
+        100
+      ).toFixed(2);
+      const noRegisteredPercentage = (
+        (noRegisteredCount / totalStudents) *
+        100
+      ).toFixed(2);
 
-        const totalStudents = filteredStudents.length;
-        const registeredPercentage = ((registeredCount / totalStudents) * 100).toFixed(2);
-        const noRegisteredPercentage = ((noRegisteredCount / totalStudents) * 100).toFixed(2);
+      const progress = {
+        registered: parseFloat(registeredPercentage),
+        no_registered: parseFloat(noRegisteredPercentage),
+      };
 
-        const progress = {
-            registered: parseFloat(registeredPercentage),
-            no_registered: parseFloat(noRegisteredPercentage)
-        };      
-
-        response.status(200).send({ progress, filteredStudents });
+      response.status(200).send({ progress, filteredStudents });
     } catch (error) {
-        response.status(500).send({
-            message: error.message,
-        });
+      response.status(500).send({
+        message: error.message,
+      });
     }
   }
 
@@ -141,11 +148,71 @@ class StudentsController {
     } catch (error) {
       response.status(500).send({
         message: error.message,
-    });
+      });
     }
   }
 
-  
-}
+  async downloadExcel(request, reply) {
+    try {
+      const data = await this.studentsModel.getAllStudents();
 
+      const studentsData = data.map((student) => ({
+        matrícula: student.ra,
+        nome: student.name,
+        turma: student.reference_classe,
+        ano: student.module,
+        eletiva: student.name_elective,
+        is_registered: student.is_registered,
+      }));
+
+      const registeredStudents = studentsData
+        .filter((student) => student.is_registered)
+        .map(({ is_registered, ...student }) => student);
+
+      const unregisteredStudents = studentsData
+        .filter((student) => !student.is_registered)
+        .map(({ is_registered, eletiva, ...student }) => student);
+
+      const registeredWorksheet = XLSX.utils.json_to_sheet(registeredStudents);
+      const unregisteredWorksheet =
+        XLSX.utils.json_to_sheet(unregisteredStudents);
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(
+        workbook,
+        registeredWorksheet,
+        "Alunos Registrados"
+      );
+      XLSX.utils.book_append_sheet(
+        workbook,
+        unregisteredWorksheet,
+        "Alunos Não Registrados"
+      );
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      const now = new Date();
+      const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+      const fileName = `relatorio_rede_eletiva_${formattedDate}`;
+  
+      reply.header(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      reply.header(
+        "Content-Disposition",
+        `attachment; filename=${fileName}.xlsx`
+      );
+
+      reply.send(buffer);
+    } catch (error) {
+      console.error("Erro ao gerar o arquivo Excel:", error);
+      reply.status(500).send({
+        success: false,
+        message: "Erro interno do servidor ao gerar o arquivo Excel.",
+        log: error.message,
+      });
+    }
+  }
+}
 export default StudentsController;

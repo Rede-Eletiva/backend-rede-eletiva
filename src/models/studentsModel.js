@@ -106,10 +106,9 @@ export class StudentsModel {
         INSERT INTO students (ra, name, date_birth, reference_classe, module)
         VALUES (${ra}, ${name}, ${date_birth}, ${reference_classe}, ${module})
       `;
-      
+
     } catch (error) {
       console.log(error.message);
     }
   }
-  
 }
