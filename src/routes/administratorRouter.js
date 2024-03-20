@@ -2,6 +2,7 @@ import { AdministratorController } from "../controllers/administratorController.
 import { ElectivesController } from "../controllers/electivesContrroller.js";
 import StudentsController from "../controllers/studentsController.js";
 
+
 export async function administratorRouter(app) {
   const administratorController = new AdministratorController();
   const electivesController = new ElectivesController();
@@ -68,9 +69,8 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post('/add-student', async(request, reply) => {
+  app.post("/add-student", async (request, reply) => {
     try {
-      
     } catch (error) {
       reply.status(500).send({
         success: false,
@@ -78,9 +78,9 @@ export async function administratorRouter(app) {
         log: error.message,
       });
     }
-  })
+  });
 
-  app.post('/list-students',  async(request, reply) => {
+  app.post("/list-students", async (request, reply) => {
     try {
       await studentsController.getAllStudents(request, reply);
     } catch (error) {
@@ -92,7 +92,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post('/add-students',  async(request, reply) => {
+  app.post("/add-students", async (request, reply) => {
     try {
       await studentsController.addStudents(request, reply);
     } catch (error) {
@@ -104,7 +104,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.get('/download-excel', async(request, reply) => {
+  app.get("/download-excel", async (request, reply) => {
     try {
       await studentsController.downloadExcel(request, reply);
     } catch (error) {
@@ -114,6 +114,19 @@ export async function administratorRouter(app) {
         log: error.message,
       });
     }
-  })
+  });
 
+  app.post("/upload-csv", async (request, reply) => {
+
+   
+    try {
+      await studentsController.uploadCSV(request, reply);
+    } catch (error) {
+      response.status(500).send({
+        success: false,
+        message: "Erro interno do servidor.",
+        log: error.message,
+      });
+    }
+  });
 }

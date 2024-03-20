@@ -1,7 +1,9 @@
 import { StudentsModel } from "../models/studentsModel.js";
 import { DiciplineModel } from "../models/disciplineModel.js";
 import { authService } from "../middlewares/authService.js";
+
 import XLSX from "xlsx";
+import csv from "csvtojson";
 
 class StudentsController {
   constructor() {
@@ -183,6 +185,7 @@ class StudentsController {
         registeredWorksheet,
         "Alunos Registrados"
       );
+
       XLSX.utils.book_append_sheet(
         workbook,
         unregisteredWorksheet,
@@ -192,13 +195,23 @@ class StudentsController {
       const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
       const now = new Date();
-      const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+      const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}_${now
+        .getHours()
+        .toString()
+        .padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}${now
+        .getSeconds()
+        .toString()
+        .padStart(2, "0")}`;
+
       const fileName = `relatorio_rede_eletiva_${formattedDate}`;
-  
+
       reply.header(
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
+      
       reply.header(
         "Content-Disposition",
         `attachment; filename=${fileName}.xlsx`
@@ -213,6 +226,17 @@ class StudentsController {
         log: error.message,
       });
     }
+  }
+
+  async uploadCSV(request, response) {
+
+    const files = request.raw.files;
+    const csvData = files.file.data.toString();
+
+    csv({delimiter: ','}).fromString(csvData).then((json) => {
+      console.log(json);
+    })
+    
   }
 }
 export default StudentsController;
