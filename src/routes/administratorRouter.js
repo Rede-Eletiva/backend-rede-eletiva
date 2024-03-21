@@ -1,5 +1,5 @@
 import { AdministratorController } from "../controllers/administratorController.js";
-import { ElectivesController } from "../controllers/electivesContrroller.js";
+import { ElectivesController } from "../controllers/electivesController.js";
 import StudentsController from "../controllers/studentsController.js";
 
 
@@ -23,7 +23,7 @@ export async function administratorRouter(app) {
 
   app.post("/create-elective", async (request, reply) => {
     try {
-      await electivesController.create(request, reply);
+      await electivesController.createElective(request, reply);
     } catch (error) {
       reply.status(500).send({
         success: false,
