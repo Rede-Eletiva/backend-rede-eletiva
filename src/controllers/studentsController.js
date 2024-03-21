@@ -237,5 +237,11 @@ class StudentsController {
         console.log(json);
       });
   }
+
+  async paramsFilterStudents(request, response) {
+    const itens = await this.studentsModel.itemFilterStudents();
+
+    response.status(200).send(itens);
+  }
 }
 export default StudentsController;

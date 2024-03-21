@@ -111,4 +111,15 @@ export class StudentsModel {
       console.log(error.message);
     }
   }
+
+  async itemFilterStudents() {
+    try {
+      return ( {
+        reference_classe: await sql`SELECT DISTINCT reference_classe FROM students ORDER BY reference_classe;`,
+        module: await sql`SELECT DISTINCT "module" FROM students ORDER BY "module";`
+      }) 
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 }

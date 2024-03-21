@@ -92,6 +92,18 @@ export async function administratorRouter(app) {
     }
   });
 
+  app.get("/itens-students", async (request, reply) => {
+    try {
+      await studentsController.paramsFilterStudents(request, reply);
+    } catch (error) {
+      reply.status(500).send({
+        success: false,
+        message: "Erro interno do servidor.",
+        log: error.message,
+      });
+    }
+  });
+
   app.post("/add-students", async (request, reply) => {
     try {
       await studentsController.addStudents(request, reply);
