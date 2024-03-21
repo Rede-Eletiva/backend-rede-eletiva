@@ -92,7 +92,6 @@ class StudentsController {
   // Funcionalidade do Administrador
 
   async getAllStudents(request, response) {
-    console.log(request.body);
     try {
       const allStudents = await this.studentsModel.getAllStudents();
 
@@ -106,17 +105,15 @@ class StudentsController {
         return false;
       });
 
-      let registeredCount = 0;
-      let noRegisteredCount = 0;
+      const registeredStudents = filteredStudents.filter(
+        (student) => student.is_registered
+      );
+      const noRegisteredStudents = filteredStudents.filter(
+        (student) => !student.is_registered
+      );
 
-      // Conta alunos registrados e não registrados
-      filteredStudents.forEach((student) => {
-        if (student.is_registered) {
-          registeredCount++;
-        } else {
-          noRegisteredCount++;
-        }
-      });
+      const registeredCount = registeredStudents.length;
+      const noRegisteredCount = noRegisteredStudents.length;
 
       const totalStudents = filteredStudents.length;
       const registeredPercentage = (
@@ -133,7 +130,9 @@ class StudentsController {
         no_registered: parseFloat(noRegisteredPercentage),
       };
 
-      response.status(200).send({ progress, filteredStudents });
+      response
+        .status(200)
+        .send({ progress, registeredStudents, noRegisteredStudents });
     } catch (error) {
       response.status(500).send({
         message: error.message,
@@ -211,7 +210,7 @@ class StudentsController {
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
-      
+
       reply.header(
         "Content-Disposition",
         `attachment; filename=${fileName}.xlsx`
@@ -229,14 +228,14 @@ class StudentsController {
   }
 
   async uploadCSV(request, response) {
-
     const files = request.raw.files;
     const csvData = files.file.data.toString();
 
-    csv({delimiter: ','}).fromString(csvData).then((json) => {
-      console.log(json);
-    })
-    
+    csv({ delimiter: "," })
+      .fromString(csvData)
+      .then((json) => {
+        console.log(json);
+      });
   }
 }
 export default StudentsController;
