@@ -1,3 +1,4 @@
+import { authService } from "../middlewares/authService.js";
 import { AdministratorModel } from "../models/administratorModel.js";
 
 export class AdministratorController {
@@ -12,12 +13,16 @@ export class AdministratorController {
       email,
       password
     );
+    const token = await authService.generateToken({
+      id: email
+    });
 
     if (validation.length > 0) {
       response.status(200).send({
         success: true,
         message: "Validado com sucesso.",
         data: validation,
+        token
       });
     } else {
       response.status(401).send({

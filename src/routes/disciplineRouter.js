@@ -9,7 +9,7 @@ export async function discplineRoutes(app) {
     { preHandler: authService.authenticateRequest },
     async (request, response) => {
       try {
-        await disciplineControllers.index(request, response, request.student);
+        await disciplineControllers.index(request, response, request.data);
       } catch (error) {
         console.error("Erro na rota:", error);
         response

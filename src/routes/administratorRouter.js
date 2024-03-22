@@ -1,8 +1,7 @@
 import { AdministratorController } from "../controllers/administratorController.js";
 import { ElectivesController } from "../controllers/electivesController.js";
 import StudentsController from "../controllers/studentsController.js";
-
-
+import { authService } from "../middlewares/authService.js";
 export async function administratorRouter(app) {
   const administratorController = new AdministratorController();
   const electivesController = new ElectivesController();
@@ -21,7 +20,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post("/create-elective", async (request, reply) => {
+  app.post("/create-elective", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await electivesController.createElective(request, reply);
     } catch (error) {
@@ -33,7 +32,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.get("/list-electives", async (request, reply) => {
+  app.get("/list-electives", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await electivesController.getAllElectives(request, reply);
     } catch (error) {
@@ -45,7 +44,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.put("/update-elective/:code_elective", async (request, reply) => {
+  app.put("/update-elective/:code_elective", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await electivesController.updateElective(request, reply);
     } catch (error) {
@@ -57,7 +56,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.delete("/delete-elective/:code_elective", async (request, reply) => {
+  app.delete("/delete-elective/:code_elective", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await electivesController.deleteElective(request, reply);
     } catch (error) {
@@ -69,7 +68,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post("/add-student", async (request, reply) => {
+  app.post("/add-student", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
     } catch (error) {
       reply.status(500).send({
@@ -80,7 +79,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post("/list-students", async (request, reply) => {
+  app.post("/list-students", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await studentsController.getAllStudents(request, reply);
     } catch (error) {
@@ -92,7 +91,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.get("/itens-students", async (request, reply) => {
+  app.get("/itens-students", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await studentsController.paramsFilterStudents(request, reply);
     } catch (error) {
@@ -104,7 +103,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post("/add-students", async (request, reply) => {
+  app.post("/add-students", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await studentsController.addStudents(request, reply);
     } catch (error) {
@@ -116,7 +115,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.get("/download-excel", async (request, reply) => {
+  app.get("/download-excel", { preHandler: authService.authenticateRequest }, async (request, reply) => {
     try {
       await studentsController.downloadExcel(request, reply);
     } catch (error) {
@@ -128,7 +127,7 @@ export async function administratorRouter(app) {
     }
   });
 
-  app.post("/upload-csv", async (request, reply) => {
+  app.post("/upload-csv", { preHandler: authService.authenticateRequest }, async (request, reply) => {
 
    
     try {

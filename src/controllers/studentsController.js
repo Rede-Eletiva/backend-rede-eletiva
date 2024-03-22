@@ -19,7 +19,7 @@ class StudentsController {
 
       if (student.length > 0) {
         const token = await authService.generateToken({
-          student_ra: student[0].ra,
+          id: student[0].ra,
           reference_classe: student[0].reference_classe,
           module: student[0].module,
           code_elective: student[0].code_elective,

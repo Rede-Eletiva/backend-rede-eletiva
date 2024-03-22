@@ -22,7 +22,7 @@ export const authService = {
   verifyToken(token) {
     try {
       const decodedToken = JWT.verify(token, process.env.SECRET_KEY);
-      if (!decodedToken.student_ra) {
+      if (!decodedToken.id) {
         throw new Error("ID do usuário não encontrado no token");
       }
 
@@ -41,14 +41,14 @@ export const authService = {
       return done();
     }
 
-    const student = authService.verifyToken(token);
+    const validate = authService.verifyToken(token);
 
-    if (!student) {
+    if (!validate) {
       reply.status(404).send({ message: "Não autorizado: Token Inválido" });
       return done();
     }
 
-    request.student = student;
+    request.data = validate;
 
     done();
   },

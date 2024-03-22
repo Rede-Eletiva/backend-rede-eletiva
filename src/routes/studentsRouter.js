@@ -18,12 +18,12 @@ export async function studentsRouter(app) {
     "/register",
     { preHandler: authService.authenticateRequest },
     async (request, reply) => {
-      await studentsController.studenSelectionDiscipline(request, reply, request.student);
+      await studentsController.studenSelectionDiscipline(request, reply, request.data);
     }
   );
   
   app.get("/dataStudent", { preHandler: authService.authenticateRequest }, 
   async (request, reply) => {
-    await studentsController.dataStudent(request, reply, request.student.student_ra);
+    await studentsController.dataStudent(request, reply, request.data.id);
   })
 }
