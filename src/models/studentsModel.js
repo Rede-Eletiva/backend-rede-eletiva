@@ -16,16 +16,16 @@ export class StudentsModel {
 
   async registerDiscipline(ra, code_elective) {
     try {
-    
-      const [{ frame }] = await sql`SELECT frame from electives WHERE code_elective = ${code_elective}`;
+      const [{ frame }] =
+        await sql`SELECT frame from electives WHERE code_elective = ${code_elective}`;
 
-     const verifySelection = await this.isEnrolledInElective(ra, frame);
+      const verifySelection = await this.isEnrolledInElective(ra, frame);
 
-     if(!verifySelection) {
-        await sql`INSERT INTO choice_electives (ra, code_elective, frame) VALUES (${ra}, ${code_elective}, ${frame})`
-     } else {
-        await sql`UPDATE choice_electives SET code_elective = ${code_elective} WHERE ra = ${ra} AND frame = ${frame}`; 
-     }
+      if (!verifySelection) {
+        await sql`INSERT INTO choice_electives (ra, code_elective, frame) VALUES (${ra}, ${code_elective}, ${frame})`;
+      } else {
+        await sql`UPDATE choice_electives SET code_elective = ${code_elective} WHERE ra = ${ra} AND frame = ${frame}`;
+      }
     } catch (error) {
       console.log(error.message);
     }
@@ -39,27 +39,27 @@ export class StudentsModel {
     e.frame = ${frame};
   `;
 
-  return verifyStudent[0].count > 0;
+    return verifyStudent[0].count > 0;
   }
 
   async getStudent(ra) {
     try {
-
       const student = await sql`SELECT * FROM students  WHERE ra = ${ra}`;
 
-      const { module } = student[0]
+      const { module } = student[0];
 
-      const electives = await sql`SELECT DISTINCT frame, code_elective FROM electives WHERE module = ${module}`;
-  
+      const electives =
+        await sql`SELECT DISTINCT frame, code_elective FROM electives WHERE module = ${module}`;
+
       student[0].electives = {};
-  
+
       if (electives && electives.length > 0) {
         electives.forEach((e) => {
           student[0].electives[e.frame] = e.code_elective;
         });
       } else {
         student.forEach((e) => {
-          student[0].electives  = false;
+          student[0].electives = false;
         });
       }
 
@@ -92,7 +92,6 @@ export class StudentsModel {
         `;
 
       return allStudents;
-
     } catch (error) {
       console.log(error.message);
     }
@@ -102,22 +101,44 @@ export class StudentsModel {
     try {
       const { ra, name, date_birth, reference_classe, module } = data;
 
+      const existingUser = await sql`
+        SELECT *
+        FROM students
+        WHERE ra = ${ra}
+      `;
+
+      if (existingUser.length > 0) {
+        throw new Error("O usuário com esta matricula já existe na base de dados.");
+      }
+
+      if (!ra || !name || !date_birth || !reference_classe || !module) {
+        throw new Error("Todos os campos são obrigatórios.");
+      }
+
+      const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!birthDateRegex.test(date_birth)) {
+        throw new Error(
+          "Formato de data de nascimento inválido."
+        );
+      }
+
       return await sql`
         INSERT INTO students (ra, name, date_birth, reference_classe, module)
         VALUES (${ra}, ${name}, ${date_birth}, ${reference_classe}, ${module})
       `;
-
     } catch (error) {
-      console.log(error.message);
+      throw error;
     }
   }
 
   async itemFilterStudents() {
     try {
-      return ( {
-        reference_classe: await sql`SELECT DISTINCT reference_classe FROM students ORDER BY reference_classe;`,
-        module: await sql`SELECT DISTINCT "module" FROM students ORDER BY "module";`
-      }) 
+      return {
+        reference_classe:
+          await sql`SELECT DISTINCT reference_classe FROM students ORDER BY reference_classe;`,
+        module:
+          await sql`SELECT DISTINCT "module" FROM students ORDER BY "module";`,
+      };
     } catch (error) {
       console.log(error.message);
     }

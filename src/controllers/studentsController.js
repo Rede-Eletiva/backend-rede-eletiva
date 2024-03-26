@@ -4,6 +4,8 @@ import { authService } from "../middlewares/authService.js";
 
 import XLSX from "xlsx";
 import csv from "csvtojson";
+import upload from "../services/uploadCSV.js";
+import { setTimeout } from 'timers/promises';
 
 class StudentsController {
   constructor() {
@@ -88,8 +90,6 @@ class StudentsController {
       console.log(error.message);
     }
   }
-
-  // Funcionalidade do Administrador
 
   async getAllStudents(request, response) {
     try {
@@ -226,17 +226,56 @@ class StudentsController {
       });
     }
   }
-
   async uploadCSV(request, response) {
-    const files = request.raw.files;
-    const csvData = files.file.data.toString();
+    try {
+        const file = await upload(request.body.file._buf);
 
-    csv({ delimiter: "," })
-      .fromString(csvData)
-      .then((json) => {
-        console.log(json);
-      });
+        const onError = (error) => {
+            console.error("Erro durante a leitura do CSV:", error);
+            response.status(500).send({
+                success: false,
+                message: "Erro durante a leitura do CSV.",
+                log: error.message,
+            });
+        };
+
+        const onComplete = (jsonDataArray) => {
+          response.status(200).send({
+              success: true,
+              message: "Conversão CSV para JSON concluída com sucesso.",
+              data: jsonDataArray  // Passa os dados processados para a função onComplete
+          });
+      };
+      
+      const processRow = async (json, jsonDataArray) => {
+          try {
+              await this.studentsModel.create(json);
+              jsonDataArray.push({...json, status: true});
+          } catch (error) {
+              jsonDataArray.push({...json, status: false, log: error.message});
+          }
+      };
+      
+      const jsonDataArray = [];
+
+        const fileProccess = await csv().fromFile(file).subscribe(
+          (json) => processRow(json, jsonDataArray),
+          onError,
+          () => onComplete(jsonDataArray)
+      );
+
+        response.status(200).send(fileProccess);
+        
+    } catch (error) {
+        console.error("Erro interno do servidor:", error);
+        response.status(500).send({
+            success: false,
+            message: "Erro interno do servidor.",
+            log: error.message,
+        });
+    }
   }
+
 
   async paramsFilterStudents(request, response) {
     const itens = await this.studentsModel.itemFilterStudents();
