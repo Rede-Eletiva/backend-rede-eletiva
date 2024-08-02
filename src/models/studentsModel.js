@@ -14,22 +14,32 @@ export class StudentsModel {
     }
   }
 
-  async registerDiscipline(ra, code_elective) {
+  async registerDiscipline(ra, code_elective, frame) {
     try {
-      const [{ frame }] =
-        await sql`SELECT frame from electives WHERE code_elective = ${code_elective}`;
-
-      const verifySelection = await this.isEnrolledInElective(ra, frame);
-
+      console.log("Received values - RA:", ra, "Code Elective:", code_elective, "Frame:", frame);
+  
+      const result = await sql`SELECT frame FROM electives WHERE code_elective = ${code_elective}`;
+      
+      if (result.length === 0) {
+        throw new Error("No frame found for the given elective code");
+      }
+  
+      const [{ frame: electiveFrame }] = result;
+      console.log("Elective Frame from DB:", electiveFrame);
+  
+      const verifySelection = await this.isEnrolledInElective(ra, electiveFrame);
+      console.log("Verify Selection:", verifySelection);
+  
       if (!verifySelection) {
-        await sql`INSERT INTO choice_electives (ra, code_elective, frame) VALUES (${ra}, ${code_elective}, ${frame})`;
+        await sql`INSERT INTO choice_electives (ra, code_elective) VALUES (${ra}, ${code_elective})`;
       } else {
-        await sql`UPDATE choice_electives SET code_elective = ${code_elective} WHERE ra = ${ra} AND frame = ${frame}`;
+        await sql`UPDATE choice_electives SET code_elective = ${code_elective} WHERE ra = ${ra}`;
       }
     } catch (error) {
-      console.log(error.message);
+      console.error("Erro no modelo:", error.message);
     }
   }
+  
   async isEnrolledInElective(ra, frame) {
     const verifyStudent = await sql`
     SELECT COUNT(*) AS count

@@ -52,21 +52,18 @@ class StudentsController {
 
   async studenSelectionDiscipline(request, response, data) {
     try {
+      console.log("Request body data:", data);
       const { code_elective } = request.body;
-
-      const checkVacancies =
-        await this.disciplineModel.checkVacanciesDiscipline(
-          code_elective,
-          data
-        );
-
+  
+      if (!code_elective) {
+        throw new Error("Elective code is not defined");
+      }
+  
+      const checkVacancies = await this.disciplineModel.checkVacanciesDiscipline(code_elective, data);
+  
       if (checkVacancies) {
-        const selected = await this.studentsModel.registerDiscipline(
-          data.student_ra,
-          code_elective,
-          data.module
-        );
-        response.status(200).send(selected);
+        const selected = await this.studentsModel.registerDiscipline(data.id, code_elective, data.module);
+        response.status(201).send(selected);
       } else {
         response.status(401).send({
           success: false,
@@ -74,12 +71,11 @@ class StudentsController {
         });
       }
     } catch (error) {
-      console.error("Erro na rota:", error);
-      response
-        .status(500)
-        .send({ success: false, message: "Erro interno do servidor." });
+      console.error("Erro no controlador:", error);
+      response.status(500).send({ success: false, message: "Erro interno do servidor." });
     }
   }
+  
 
   async dataStudent(request, response, ra) {
     try {
