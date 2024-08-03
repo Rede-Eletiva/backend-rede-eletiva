@@ -1,6 +1,6 @@
-import { Readable } from 'stream';
-import path from 'path';
-import fs from 'fs';
+import { Readable } from "stream";
+import path from "path";
+import fs from "fs";
 
 async function uploadCSV(fileBuffer) {
   try {
@@ -12,7 +12,7 @@ async function uploadCSV(fileBuffer) {
     }
 
     const uploadFilePath = path.join(uploadDir, "upload.csv");
-    const fileStream = Readable.from([fileBuffer]); 
+    const fileStream = Readable.from([fileBuffer]);
     const writeStream = fs.createWriteStream(uploadFilePath);
 
     fileStream.pipe(writeStream);
@@ -22,6 +22,7 @@ async function uploadCSV(fileBuffer) {
       writeStream.on("error", reject);
     });
 
+    console.log(uploadFilePath);
     return uploadFilePath;
   } catch (error) {
     console.error("Error uploading CSV file:", error);
