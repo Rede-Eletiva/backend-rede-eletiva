@@ -127,18 +127,6 @@ export class StudentsModel {
     try {
       const { ra, name, date_birth, reference_classe, module } = data;
 
-      const existingUser = await sql`
-        SELECT *
-        FROM students
-        WHERE ra = ${ra}
-      `;
-
-      if (existingUser.length > 0) {
-        throw new Error(
-          "O usuário com esta matricula já existe na base de dados."
-        );
-      }
-
       if (!ra || !name || !date_birth || !reference_classe || !module) {
         throw new Error("Todos os campos são obrigatórios.");
       }
@@ -148,11 +136,29 @@ export class StudentsModel {
         throw new Error("Formato de data de nascimento inválido.");
       }
 
+      // Remover registros da tabela choice_electives relacionados ao reference_classe
+      await sql`
+          DELETE FROM choice_electives 
+          WHERE ra IN (
+            SELECT ra 
+            FROM students 
+            WHERE reference_classe = ${reference_classe}
+          );
+        `;
+
+      // Remover registros da tabela students com o reference_classe
+      await sql`
+          DELETE FROM students 
+          WHERE reference_classe = ${reference_classe};
+        `;
+
+      // Inserir novos dados
       return await sql`
         INSERT INTO students (ra, name, date_birth, reference_classe, module)
         VALUES (${ra}, ${name}, ${date_birth}, ${reference_classe}, ${module})
-      `;
+        `;
     } catch (error) {
+      console.error("Erro no modelo:", error.message);
       throw error;
     }
   }

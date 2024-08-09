@@ -5,7 +5,6 @@ import { authService } from "../middlewares/authService.js";
 import XLSX from "xlsx";
 import csv from "csvtojson";
 import upload from "../services/uploadCSV.js";
-import { setTimeout } from "timers/promises";
 
 class StudentsController {
   constructor() {
