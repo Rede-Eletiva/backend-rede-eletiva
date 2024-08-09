@@ -16,37 +16,55 @@ export class StudentsModel {
 
   async registerDiscipline(ra, code_elective, frame) {
     try {
-      console.log("Received values - RA:", ra, "Code Elective:", code_elective, "Frame:", frame);
-  
-      const result = await sql`SELECT frame FROM electives WHERE code_elective = ${code_elective}`;
-      
+      console.log(
+        "Received values - RA:",
+        ra,
+        "Code Elective:",
+        code_elective,
+        "Frame:",
+        frame
+      );
+
+      const result =
+        await sql`SELECT frame FROM electives WHERE code_elective = ${code_elective}`;
+
       if (result.length === 0) {
         throw new Error("No frame found for the given elective code");
       }
-  
+
       const [{ frame: electiveFrame }] = result;
       console.log("Elective Frame from DB:", electiveFrame);
-  
-      const verifySelection = await this.isEnrolledInElective(ra, electiveFrame);
+
+      const verifySelection = await this.isEnrolledInElective(
+        ra,
+        electiveFrame
+      );
       console.log("Verify Selection:", verifySelection);
-  
+
       if (!verifySelection) {
-        await sql`INSERT INTO choice_electives (ra, code_elective) VALUES (${ra}, ${code_elective})`;
+        await sql`
+          INSERT INTO choice_electives (ra, code_elective, frame) 
+          VALUES (${ra}, ${code_elective}, ${electiveFrame})
+        `;
       } else {
-        await sql`UPDATE choice_electives SET code_elective = ${code_elective} WHERE ra = ${ra}`;
+        await sql`
+          UPDATE choice_electives 
+          SET code_elective = ${code_elective}, frame = ${electiveFrame} 
+          WHERE ra = ${ra} AND
+          frame = ${electiveFrame}
+        `;
       }
     } catch (error) {
       console.error("Erro no modelo:", error.message);
     }
   }
-  
+
   async isEnrolledInElective(ra, frame) {
     const verifyStudent = await sql`
     SELECT COUNT(*) AS count
     FROM choice_electives AS ce 
-    INNER JOIN electives AS e ON ce.code_elective = e.code_elective
     WHERE ce.ra = ${ra} AND
-    e.frame = ${frame};
+    ce.frame = ${frame};
   `;
 
     return verifyStudent[0].count > 0;
@@ -56,10 +74,8 @@ export class StudentsModel {
     try {
       const student = await sql`SELECT * FROM students  WHERE ra = ${ra}`;
 
-      const { module } = student[0];
-
       const electives =
-        await sql`SELECT DISTINCT frame, code_elective FROM electives WHERE module = ${module}`;
+        await sql`SELECT frame, code_elective FROM choice_electives WHERE ra = ${ra}`;
 
       student[0].electives = {};
 
@@ -72,7 +88,7 @@ export class StudentsModel {
           student[0].electives = false;
         });
       }
-
+      console.log("student", student);
       return student;
     } catch (error) {
       console.log(error.message);
@@ -118,7 +134,9 @@ export class StudentsModel {
       `;
 
       if (existingUser.length > 0) {
-        throw new Error("O usuário com esta matricula já existe na base de dados.");
+        throw new Error(
+          "O usuário com esta matricula já existe na base de dados."
+        );
       }
 
       if (!ra || !name || !date_birth || !reference_classe || !module) {
@@ -127,9 +145,7 @@ export class StudentsModel {
 
       const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!birthDateRegex.test(date_birth)) {
-        throw new Error(
-          "Formato de data de nascimento inválido."
-        );
+        throw new Error("Formato de data de nascimento inválido.");
       }
 
       return await sql`
